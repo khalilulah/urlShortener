@@ -5,33 +5,38 @@ import {
   incrementClickCount,
   setCachedLongUrl,
 } from "../db/cache";
+import { rateLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
 
-router.get("/:code", async (req: Request, res: Response) => {
-  const { code } = req.params;
+router.get(
+  "/:code",
+  rateLimiter(5, 60),
+  async (req: Request, res: Response) => {
+    const { code } = req.params;
 
-  try {
-    const cachedUrl = await getCachedLongUrl(code);
+    try {
+      const cachedUrl = await getCachedLongUrl(code);
 
-    if (cachedUrl) {
+      if (cachedUrl) {
+        incrementClickCount(code); // fire-and-forget, not awaited
+        return res.redirect(302, cachedUrl);
+      }
+
+      const link = await getLinkByCode(code);
+
+      if (!link) {
+        return res.status(404).json({ error: "Link not found" });
+      }
+      await setCachedLongUrl(code, link.long_url);
       incrementClickCount(code); // fire-and-forget, not awaited
-      return res.redirect(302, cachedUrl);
+
+      res.redirect(302, link.long_url);
+    } catch (err) {
+      console.error("Error fetching link:", err);
+      res.status(500).json({ error: "Something went wrong" });
     }
-
-    const link = await getLinkByCode(code);
-
-    if (!link) {
-      return res.status(404).json({ error: "Link not found" });
-    }
-    await setCachedLongUrl(code, link.long_url);
-    incrementClickCount(code); // fire-and-forget, not awaited
-
-    res.redirect(302, link.long_url);
-  } catch (err) {
-    console.error("Error fetching link:", err);
-    res.status(500).json({ error: "Something went wrong" });
-  }
-});
+  },
+);
 
 export default router;

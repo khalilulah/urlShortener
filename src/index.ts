@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import shortenRouter from "./routes/shorten";
 import redirectRouter from "./routes/redirect";
 import { connectRedis } from "./db/redisClient";
+import { startClickFlushJob } from "./jobs/scheduler";
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ async function startServer() {
   } catch (err) {
     console.error("Failed to connect to Redis. Continuing without cache.", err);
   }
+
+  startClickFlushJob();
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
