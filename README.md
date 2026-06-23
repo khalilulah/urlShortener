@@ -1,8 +1,7 @@
 # URL Shortener with Analytics — Project Documentation
 
 A backend-focused URL shortener built to deeply understand core backend engineering
-decisions: encoding strategy, caching, asynchronous analytics, and rate limiting —
-not just to ship a working product.
+decisions: encoding strategy, caching, asynchronous analytics, and rate limiting.
 
 **Stack:** Node.js, TypeScript, Express, PostgreSQL (raw SQL via `pg`, no ORM), Redis
 
@@ -13,7 +12,7 @@ not just to ship a working product.
 The system has two distinct flows with very different performance requirements:
 
 ### Write path — `POST /shorten`
-Happens once per link created. Latency tolerance is loose (a few hundred ms is fine).
+Happens once per link created. Latency of a few hundred ms.
 
 ```
 Client → POST /shorten { longUrl }
@@ -26,7 +25,7 @@ Client → POST /shorten { longUrl }
 ```
 
 ### Read path — `GET /:code`
-Happens on every click — potentially thousands of times per link. Latency must be
+Happens on every click — potentially thousands of times per link. Latency is
 minimal (target: low milliseconds).
 
 ```
@@ -588,8 +587,8 @@ project.
 
 ## 9. Known Limitations / Future Work
 
-These were identified during the build but deliberately deferred, either because
-they're out of scope for the core learning goals or because they're genuine "decide
+These were identified during the build but deliberately deferred, because some are either
+out of scope for the core learning goals or because they're genuine "decide
 later" tradeoffs:
 
 - **No deduplication** on `/shorten` — identical long URLs get separate codes.
